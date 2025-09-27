@@ -76,3 +76,13 @@ kubectl get no --show-labels | grep -i "node=node2"
 export KOPS_STATE_STORE=s3://teja.flm.kops
 kops get cluster
 kops delete cluster --name teja.kops.local --yes
+
+
+
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster teja.kops.local
+ * edit your node instance group: kops edit ig --name=teja.kops.local nodes-us-east-1a
+ * edit your control-plane instance group: kops edit ig --name=teja.kops.local control-plane-us-east-1a
+
+Finally configure your cluster with: kops update cluster --name teja.kops.local --yes --admin
