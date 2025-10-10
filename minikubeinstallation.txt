@@ -1,0 +1,11 @@
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    2  ll
+    3  chmod +x kubectl 
+    4  mv kubectl /usr/local/bin/
+    5  kubectl version
+    6  curl -LO https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64
+    7  sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
+    8  yum install docker -y && systemctl start docker
+    9  kubectl start --driver=docker --force
+   10  kubectl version
+   11  minikube start --driver=docker --force
