@@ -30,7 +30,7 @@ resource "aws_security_group" "mysg" {
   dynamic "ingress" {
     for_each = var.ports
     content{
-      from_ports = ingress.value
+      from_port = ingress.value
       to_ports = ingress.value
       protocol = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
