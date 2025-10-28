@@ -22,3 +22,30 @@ resource "aws_instance" "myinstance" {
     prevent_destroy = true
   }
 }
+-------------
+resource "aws_security_group" "mysg" {
+  name        = "Terraform-sg"
+  description = "this will be created by terraform"
+
+  dynamic "ingress" {
+    for_each = var.ports
+    content{
+      from_ports = ingress.value
+      to_ports = ingress.value
+      protocol = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+variable "ports" {
+  type = list(any)
+  default = [22, 80, 443, 50000, 8088, 9000]
+}
