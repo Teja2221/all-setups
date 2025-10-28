@@ -9,3 +9,16 @@ terraform plan
 terraform apply
 terraform destroy
 terraform fmt
+===
+resource "aws_instance" "myinstance" {
+  ami           = "ami-07860a2d7eb515d9a"
+  instance_type = "t2.micro"
+  tags = {
+    Name = "Teja-server"
+  }
+  lifecycle{
+    create_before_destroy = true
+    ignore_changes = [tags]
+    prevent_destroy = true
+  }
+}
