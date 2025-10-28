@@ -9,7 +9,7 @@ terraform plan
 terraform apply
 terraform destroy
 terraform fmt
-===
+===28102025===========
 resource "aws_instance" "myinstance" {
   ami           = "ami-07860a2d7eb515d9a"
   instance_type = "t2.micro"
@@ -23,6 +23,48 @@ resource "aws_instance" "myinstance" {
   }
 }
 -------------
+terraform import aws_instance.myinstance i-0f1fd026e29011fb4
+   23  ll
+   24  cat terraform.tfstate 
+   25  vi main.tf 
+   26  terraform plan
+   27  terraform apply --auto-approve
+   28  vi main.tf 
+   29  terraform apply --auto-approve
+   30  terraform destroy
+   31  terraform apply --auto-approve
+   32  terraform state list
+   33  terraform taint aws_instance.myinstance
+   34  terraform apply --auto -approve
+   35  terraform apply --auto-approve
+   36  terraform state list
+   37  terraform apply --auto-approve -replace="aws_instance.myinstance"
+   38  vi main.tf 
+   39  terraform apply --auto-approve -replace="aws_instance.myinstance"
+   40  vi main.tf 
+   41  terraform apply --auto-approve
+   42  vi main.tf 
+   43  terraform apply --auto-approve
+   44  vi main.tf 
+   45  terraform destroy
+   46  vi main.tf 
+   47  terraform destroy
+   48  vi main.tf 
+   49  vi security.tf
+   50  terraform fmt
+   51  vi security.tf
+   52  terraform fmt
+   53  vi security.tf 
+   54  terraform fmt
+   55  vi security.tf 
+   56  cat security.tf 
+   57  terraform apply --auto-approve
+   58  vi security.tf 
+   59  terraform apply --auto-approve
+   60  vi main.tf 
+   61  terraform destroy
+-----------------
+
 resource "aws_security_group" "mysg" {
   name        = "Terraform-sg"
   description = "this will be created by terraform"
