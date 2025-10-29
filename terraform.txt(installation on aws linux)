@@ -9,7 +9,7 @@ terraform plan
 terraform apply
 terraform destroy
 terraform fmt
-===28102025===========
+===27102025===========
 resource "aws_instance" "myinstance" {
   ami           = "ami-07860a2d7eb515d9a"
   instance_type = "t2.micro"
@@ -90,4 +90,104 @@ resource "aws_security_group" "mysg" {
 variable "ports" {
   type = list(any)
   default = [22, 80, 443, 50000, 8088, 9000]
+}
+==========28102025==============
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "myserver" {
+  tags = {
+    Name = "myinstance"
+  }
+  instance_type = "t2.micro"
+  ami           = "ami-07860a2d7eb515d9a"
+
+  provisioner "local-exec" {
+    command = "echo 'Instance created with an ID: ${aws_instance.myserver.id}' >> server-id.txt"
+  }
+}
+--
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_key_pair" "mykey" {
+  key_name   = "flm"
+  public_key = file("/root/.ssh/id_rsa.pub")
+}
+
+resource "aws_instance" "myserver" {
+  tags = {
+    Name = "myinstance"
+  }
+  instance_type = "t2.micro"
+  ami           = "ami-07860a2d7eb515d9a"
+  key_name      = aws_key_pair.mykey.key_name
+  vpc_security_group_ids = [aws_security_group.mysg.id]
+
+  provisioner "remote-exec" {
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      host        = self.public_ip
+      private_key = file("/root/.ssh/id_rsa")
+    }
+    inline = [
+      "echo 'this command is executing on remote server'",
+      "sudo yum install httpd -y",
+      "sudo systemctl start httpd",
+      "sudo systemctl enable httpd",
+      "sudo yum install git -y"
+    ]
+  }
+}
+
+resource "aws_security_group" "mysg" {
+  name        = "new-tf-sg"
+  description = "this is created by terraform"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+--
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_key_pair" "mykey" {
+  key_name   = "flm"
+  public_key = file("/root/.ssh/id_rsa.pub")
+}
+
+resource "aws_instance" "myserver" {
+  tags = {
+    Name = "myinstance"
+  }
+  instance_type = "t2.micro"
+  ami           = "ami-07860a2d7eb515d9a"
+  key_name      = aws_key_pair.mykey.key_name
+  vpc_security_group_ids = [aws_security_group.mysg.id]
+
+  provisioner "file" {
+    connection {
+      type        = "ssh"
+      user        = "ec2-user"
+      host        = self.public_ip
+      private_key = file("/root/.ssh/id_rsa")
+    }
+   source = "/root/security.tf"
+   destination = "security.tf"
+  }
 }
