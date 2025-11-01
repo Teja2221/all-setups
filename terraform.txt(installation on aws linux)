@@ -191,3 +191,85 @@ resource "aws_instance" "myserver" {
    destination = "security.tf"
   }
 }
+
+
+-------------------
+29/10/2025
+---create bucket code------
+resource "aws_s3_bucket" "mybucket" {
+  bucket = var.bucket_name
+}
+
+resource "aws_s3_bucket_versioning" "bucketversioning" {
+  bucket = aws_s3_bucket.mybucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+ 
+variable "bucket_name" {
+  type    = string
+  default = "teja.terra.flm.bucket"
+}
+---create buckets code------
+variable "bucket_names" {
+  type    = set(string)
+  default = ["teja.terra.flm.bucket1", "teja.terra.flm.bucket2", "teja.terra.flm.bucket3"]
+}
+
+resource "aws_s3_bucket" "mybuckets" {
+  for_each = var.bucket_names
+  bucket   = each.value
+}
+
+resource "aws_s3_bucket_versioning" "bucketversioning" {
+  for_each = aws_s3_bucket.mybuckets
+  bucket   = each.value.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+---backend file code------
+terraform {
+  backend "s3" {
+    bucket = "teja.terra.flm.bucket1"
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
+-----create new server-----
+resource "aws_instance" "myserver" {
+  tags = {
+    Name = "terraformserver"
+  }
+  ami           = "ami-0bdd88bd06d16ba03"
+  instance_type = "t3.micro"
+}
+==========================
+s3 with jenkins
+
+pipeline {
+    agent any
+    tools{ 
+        maven "maven"
+    }
+    stages {
+        stage('code') {
+            steps {
+                git 'https://github.com/Teja2221/one.git'
+            }
+        }
+        stage('build'){
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage("Artifact") {
+            steps {
+                s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'teja.terra.flm.bucket2', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'us-east-1', showDirectlyInBrowser: false, sourceFile: 'target/myweb-8.6.9.war', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 'mybucket', userMetadata: []
+            }
+        }
+    }
+}
+========================
