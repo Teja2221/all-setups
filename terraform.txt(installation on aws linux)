@@ -283,7 +283,8 @@ terraform {
     use_lockfile = true
   }
 }
--------------modules--------
+-------------modules-dev---------
+terraform workspace new dev or terraform workspace select dev
 .
 ├── bucket
 │   ├── main.tf
