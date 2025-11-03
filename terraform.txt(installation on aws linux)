@@ -273,3 +273,13 @@ pipeline {
     }
 }
 ========================
+30102025 - statefilelocking
+
+terraform {
+  backend "s3" {
+    bucket = "teja.terra.statefilelocking.bucket"
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+    use_lockfile = true
+  }
+}
