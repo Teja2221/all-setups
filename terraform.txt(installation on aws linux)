@@ -283,3 +283,97 @@ terraform {
     use_lockfile = true
   }
 }
+-------------modules--------
+.
+├── bucket
+│   ├── main.tf
+│   └── variable.tf
+├── instance
+│   ├── main.tf
+│   └── variable.tf
+├── main.tf
+├── provider.tf
+└── security
+    ├── security.tf
+    └── variable.tf
+
+main.tf
+
+module "instance_module" {
+  source = "./instance/"
+  iname  = "module-server"
+  itype  = "t2.micro"
+  ami_id = "ami-0bdd88bd06d16ba03"
+}
+
+module "bucket_module" {
+  source      = "./bucket/"
+  bucket_name = "teja.modules.bucket.flm"
+}
+
+module "security_module" {
+  source    = "./security/"
+  sec_group = "mymodule"
+}
+
+instance/main.tf
+
+resource "aws_instance" "myserver" {
+tags = { 
+Name = var.iname
+}
+
+ami = var.ami_id
+instance_type = var.itype
+}
+
+instance/variable.tf
+
+variable "iname" {
+type = string
+}
+variable "ami_id" {
+type = string
+}
+
+variable "itype" {
+type = string
+}
+
+bucket/main.tf
+resource "aws_s3_bucket" "mybucket" {
+  bucket = var.bucket_name
+}
+
+bucket/variable.tf
+
+variable "bucket_name" {
+type = string
+}
+
+security/security.tf
+
+resource "aws_security_group" "mysg" {
+name = var.sec_group
+description = "this created using terrfrom"
+
+ingress {
+from_port = 0
+to_port = 0
+protocol = "-1"
+cidr_blocks = ["0.0.0.0/0"]
+}
+egress {
+from_port = 0
+to_port = 0
+protocol = "-1"
+cidr_blocks = ["0.0.0.0/0"]
+}
+}
+
+security/variable.tf
+
+variable "sec_group" {
+type = string 
+}
+-----------
