@@ -377,4 +377,102 @@ security/variable.tf
 variable "sec_group" {
 type = string 
 }
------------
+============================================
+05112025
+-----------create vpc using terraform for public subnet----------
+
+resource "aws_vpc" "myvpc" {
+  tags = {
+    Name = "terraform-VPC"
+    Env  = "dev"
+  }
+
+  cidr_block          = "10.0.0.0/16"
+  instance_tenancy    = "default"
+  enable_dns_hostnames = "true"
+}
+
+resource "aws_subnet" "mysubnet" {
+  vpc_id = aws_vpc.myvpc.id
+  tags = {
+    Name = "terraform-subnet"
+  }
+  availability_zone      = "us-east-1a"
+  cidr_block             = "10.0.0.0/24"
+  map_public_ip_on_launch = "true"
+}
+
+resource "aws_internet_gateway" "myigw" {
+  vpc_id = aws_vpc.myvpc.id
+  tags = {
+    Name = "terraform-igw"
+  }
+}
+
+resource "aws_route_table" "myrt" {
+  tags = {
+    Name = "terraform-RT"
+  }
+  vpc_id = aws_vpc.myvpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.myigw.id
+  }
+}
+
+resource "aws_route_table_association" "subnet_association" {
+  subnet_id      = aws_subnet.mysubnet.id
+  route_table_id = aws_route_table.myrt.id
+}
+
+-------private subnet-----------
+
+resource "aws_subnet" "private_subnet" {
+  vpc_id = aws_vpc.myvpc.id
+  tags = {
+    Name = "terraform-private-subnet"
+    Env  = "dev"
+  }
+  availability_zone       = "us-east-1a"
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = "false"
+}
+
+# Create a NAT Gateway for private subnet internet access (optional but recommended)
+resource "aws_eip" "nat_eip" {
+  domain = "vpc"
+  tags = {
+    Name = "terraform-nat-eip"
+  }
+}
+
+resource "aws_nat_gateway" "my_nat" {
+  allocation_id = aws_eip.nat_eip.id
+  subnet_id     = aws_subnet.mysubnet.id  # Using your public subnet for NAT
+  tags = {
+    Name = "terraform-nat-gateway"
+  }
+  depends_on = [aws_internet_gateway.myigw]
+}
+
+# Create a separate route table for private subnet
+resource "aws_route_table" "private_rt" {
+  tags = {
+    Name = "terraform-private-RT"
+  }
+  vpc_id = aws_vpc.myvpc.id
+  
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.my_nat.id
+  }
+}
+
+# Associate private subnet with private route table
+resource "aws_route_table_association" "private_subnet_association" {
+  subnet_id      = aws_subnet.private_subnet.id
+  route_table_id = aws_route_table.private_rt.id
+}
+
+============
+
